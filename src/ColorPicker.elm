@@ -1,12 +1,13 @@
-module ColorPicker exposing (run)
+module ColorPicker exposing (run, task)
 
 import BackendTask exposing (BackendTask)
+import FatalError exposing (FatalError)
 import Html.String as Html exposing (Html)
 import Html.String.Attributes as Attr
-import FatalError exposing (FatalError)
 import Kit
 import Kit.Field as Field
-import Pages.Script as Script exposing (Script)
+import Kit.Script as Script
+import Pages.Script exposing (Script)
 
 
 type alias Person =
@@ -16,29 +17,41 @@ type alias Person =
     }
 
 
+{-| Build script - run with `elm-pages run src/ColorPicker.elm`
+-}
 run : Script
 run =
-    Kit.script
-        (Field.fields Person
-            |> Field.with (Field.text "Name" |> Field.placeholder "Enter your name" |> Field.required)
-            |> Field.with (Field.textarea "Bio" { rows = 3 } |> Field.placeholder "Tell us about yourself")
-            |> Field.with (Field.int "Age" |> Field.min 0 |> Field.max 120)
-            |> Field.runFields
-            |> BackendTask.andThen
-                (\person ->
-                    Kit.arg
-                        { placeholder = "Pick your favorite color"
-                        , choices =
-                            [ { name = "Red", value = "red", description = "" }
-                            , { name = "Green", value = "green", description = "" }
-                            , { name = "Blue", value = "blue", description = "" }
-                            , { name = "Purple", value = "purple", description = "" }
-                            , { name = "Orange", value = "orange", description = "" }
-                            ]
-                        }
-                        |> BackendTask.andThen (\color -> showResult person color)
-                )
-        )
+    Script.define
+        { name = "Color Picker"
+        , moduleName = "ColorPicker"
+        }
+        |> Script.withDescription "Pick a color using elm-pages"
+        |> Script.build
+
+
+{-| The actual script logic
+-}
+task : BackendTask FatalError ()
+task =
+    Field.fields Person
+        |> Field.with (Field.text "Name" |> Field.placeholder "Enter your name" |> Field.required)
+        |> Field.with (Field.textarea "Bio" { rows = 3 } |> Field.placeholder "Tell us about yourself")
+        |> Field.with (Field.int "Age" |> Field.min 0 |> Field.max 120)
+        |> Field.runFields
+        |> BackendTask.andThen
+            (\person ->
+                Kit.arg
+                    { placeholder = "Pick your favorite color"
+                    , choices =
+                        [ { name = "Red", value = "red", description = "" }
+                        , { name = "Green", value = "green", description = "" }
+                        , { name = "Blue", value = "blue", description = "" }
+                        , { name = "Purple", value = "purple", description = "" }
+                        , { name = "Orange", value = "orange", description = "" }
+                        ]
+                    }
+                    |> BackendTask.andThen (\color -> showResult person color)
+            )
 
 
 showResult : Person -> String -> BackendTask FatalError ()
