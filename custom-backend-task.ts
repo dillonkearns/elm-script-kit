@@ -1,4 +1,5 @@
-import "@johnlindquist/kit"
+// ScriptKit globals (arg, div, editor, etc.) are injected at runtime.
+// No import needed - they're available globally when running as a ScriptKit script.
 
 // --- Types ---
 
