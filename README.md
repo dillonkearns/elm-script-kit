@@ -16,7 +16,7 @@ Check out [`src/ElmPackageSearch.elm`](src/ElmPackageSearch.elm) - **122 lines o
 2. **Clone this repo** into your ScriptKit scripts directory:
    ```bash
    cd ~/.kenv/scripts
-   git clone https://github.com/dillonkearns/elm-script-kit elm-pages-script
+   git clone https://github.com/dillonkearns/elm-script-kit.git elm-pages-script
    cd elm-pages-script
    ```
 3. **Install dependencies**:
