@@ -65,6 +65,7 @@ selectPackage packages =
                     { name = pkg.name
                     , value = pkg.name
                     , description = pkg.summary
+                    , img = Nothing
                     }
                 )
                 packages

@@ -129,3 +129,77 @@ export async function scriptKitPaste(): Promise<string> {
 export async function scriptKitTemplate(templateString: string): Promise<string> {
   return await template(templateString);
 }
+
+export async function scriptKitOpen(url: string): Promise<null> {
+  await open(url);
+  return null;
+}
+
+// --- Environment ---
+
+export async function scriptKitEnv(varName: string): Promise<string> {
+  return await env(varName);
+}
+
+// --- Database ---
+
+interface DbGetOptions {
+  name: string;
+  defaultData: any;
+}
+
+interface DbWriteOptions {
+  name: string;
+  data: any;
+}
+
+export async function scriptKitDbGet(options: DbGetOptions): Promise<any> {
+  console.log(`[db] Getting "${options.name}"...`);
+  const database = await db(options.name, options.defaultData);
+  // db uses a proxy - access properties directly, not via .data
+  const result = { ...options.defaultData };
+  for (const key of Object.keys(options.defaultData)) {
+    result[key] = database[key];
+  }
+  const trackCount = result.tracks?.length || 0;
+  console.log(`[db] Cache ${trackCount > 0 ? 'HIT' : 'MISS'} - ${trackCount} tracks`);
+  return result;
+}
+
+export async function scriptKitDbWrite(options: DbWriteOptions): Promise<null> {
+  console.log(`[db] Writing "${options.name}" - ${options.data?.tracks?.length || 0} tracks...`);
+  const database = await db(options.name);
+  // db uses a proxy - set properties directly
+  for (const [key, value] of Object.entries(options.data)) {
+    database[key] = value;
+  }
+  await database.write();
+  console.log(`[db] Write complete`);
+  return null;
+}
+
+// --- Spotify ---
+
+export async function spotifyGetAccessToken(): Promise<string> {
+  console.log(`[spotify] Getting access token...`);
+  const clientId = await env("SPOTIFY_CLIENT_ID");
+  const clientSecret = await env("SPOTIFY_CLIENT_SECRET");
+
+  const authString = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
+  const response = await fetch("https://accounts.spotify.com/api/token", {
+    method: "POST",
+    headers: {
+      "Authorization": `Basic ${authString}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: "grant_type=client_credentials",
+  });
+
+  if (!response.ok) {
+    throw new Error(`Spotify auth failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data.access_token;
+}

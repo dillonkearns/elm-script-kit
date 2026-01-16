@@ -2,7 +2,8 @@ module Kit exposing
     ( arg, input, editor, template, Choice, ArgOptions
     , div, md, Html
     , selectFile, selectFolder
-    , notify, say, copy, paste
+    , notify, say, copy, paste, open
+    , env
     , script
     )
 
@@ -26,7 +27,12 @@ module Kit exposing
 
 # Utilities
 
-@docs notify, say, copy, paste
+@docs notify, say, copy, paste, open
+
+
+# Environment
+
+@docs env
 
 
 # Script Helper
@@ -69,12 +75,14 @@ type alias Html =
   - `name` - Primary display text
   - `value` - Value returned when selected
   - `description` - Optional secondary text shown below the name
+  - `img` - Optional image URL to display alongside the choice
 
 -}
 type alias Choice =
     { name : String
     , value : String
     , description : String
+    , img : Maybe String
     }
 
 
@@ -306,6 +314,42 @@ paste =
         |> BackendTask.allowFatal
 
 
+{-| Open a URL or file path using the system default handler.
+
+    Kit.open "https://example.com"
+
+    Kit.open "spotify:track:abc123"
+
+-}
+open : String -> BackendTask FatalError ()
+open url =
+    BackendTask.Custom.run "scriptKitOpen"
+        (Encode.string url)
+        (Decode.null ())
+        |> BackendTask.allowFatal
+
+
+
+-- ENVIRONMENT
+
+
+{-| Get an environment variable. Prompts the user to set it if not found.
+
+    Kit.env "SPOTIFY_CLIENT_ID"
+        |> BackendTask.andThen
+            (\clientId ->
+                -- use clientId
+            )
+
+-}
+env : String -> BackendTask FatalError String
+env varName =
+    BackendTask.Custom.run "scriptKitEnv"
+        (Encode.string varName)
+        Decode.string
+        |> BackendTask.allowFatal
+
+
 
 -- ENCODERS
 
@@ -329,6 +373,13 @@ encodeChoice choice =
 
                 else
                     [ ( "description", Encode.string choice.description ) ]
+               )
+            ++ (case choice.img of
+                    Just imgUrl ->
+                        [ ( "img", Encode.string imgUrl ) ]
+
+                    Nothing ->
+                        []
                )
         )
 
