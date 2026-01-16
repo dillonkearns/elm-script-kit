@@ -6,10 +6,12 @@
 - `arg` - select from choices
 - `input` - free text input
 - `editor` - Monaco editor with syntax highlighting
-- `fields` builder - multi-field forms (`withField`, `withNumberField`, `runFields`)
+- `template` - tab-through placeholder substitution (`$1`, `${2:default}`)
+- `fields` builder (Kit.Field) - type-safe multi-field forms
 
 ### Display
 - `div` - display HTML (with `Html.String` for typed HTML)
+- `md` - convert markdown to HTML string
 
 ### File Picking
 - `selectFile` - native Finder file picker
@@ -19,11 +21,32 @@
 - `notify` - system notifications
 - `say` - text-to-speech
 - `copy` - copy to clipboard
+- `paste` - get clipboard contents
+
+## Deferred Features
+
+These features are planned but deferred for now:
+
+### Richer Choice type for arg
+Currently `Choice` is `{ name : String, value : String }`. Could add:
+- `description` - secondary text
+- `preview` - HTML preview pane
+- `shortcut` - keyboard shortcuts (e.g., `[O]pen` triggers on `o` key)
+
+### drop
+Drag and drop support. Returns either text or file path. Need to design how to handle the union type in Elm cleanly.
+
+### hotkey
+Capture key combinations. Lower priority for now.
+
+## Known Issues
+
+### ScriptKit fields() select bug
+ScriptKit's `fields()` function has a bug where `select` elements don't render their options - the dropdown appears empty. This is a ScriptKit issue, not our code. We've removed `select` from the Kit.Field API; use `Kit.arg` for selection instead.
 
 ## Future Possibilities
 
 ### arg enhancements
-- `withShortcut` - keyboard shortcuts for choices (e.g., `[O]pen` with `o` key)
 - Dynamic/async choices
 - Preview pane for choices
 
@@ -32,9 +55,6 @@
 - Widget API for persistent windows
 
 ### Additional inputs
-- `template` - tab-through placeholder substitution (`$1`, `${2:default}`)
-- `hotkey` - capture key combinations
-- `drop` - drag and drop files/text
 - `path` - filesystem browser with tab navigation
 
 ### AI functions

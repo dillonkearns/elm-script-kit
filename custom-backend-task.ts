@@ -119,3 +119,11 @@ export async function scriptKitCopy(text: string): Promise<null> {
   await copy(text);
   return null;
 }
+
+export async function scriptKitPaste(): Promise<string> {
+  return await paste();
+}
+
+export async function scriptKitTemplate(templateString: string): Promise<string> {
+  return await template(templateString);
+}

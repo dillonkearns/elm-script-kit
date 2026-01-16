@@ -1,8 +1,8 @@
 module Kit exposing
-    ( arg, input, editor, Choice, ArgOptions
-    , div, Html
+    ( arg, input, editor, template, Choice, ArgOptions
+    , div, md, Html
     , selectFile, selectFolder
-    , notify, say, copy
+    , notify, say, copy, paste
     , script
     )
 
@@ -11,12 +11,12 @@ module Kit exposing
 
 # User Input
 
-@docs arg, input, editor, Choice, ArgOptions
+@docs arg, input, editor, template, Choice, ArgOptions
 
 
 # Display
 
-@docs div, Html
+@docs div, md, Html
 
 
 # File Picking
@@ -26,7 +26,7 @@ module Kit exposing
 
 # Utilities
 
-@docs notify, say, copy
+@docs notify, say, copy, paste
 
 
 # Script Helper
@@ -146,6 +146,25 @@ editor options =
         |> BackendTask.allowFatal
 
 
+{-| Template input with tab-through placeholders.
+
+    -- Simple placeholders
+    Kit.template "Hello $1, welcome to $2!"
+
+    -- Placeholders with defaults
+    Kit.template "Hello ${1:name}, welcome to ${2:place}!"
+
+Users can tab between placeholders to fill them in.
+
+-}
+template : String -> BackendTask FatalError String
+template templateString =
+    BackendTask.Custom.run "scriptKitTemplate"
+        (Encode.string templateString)
+        Decode.string
+        |> BackendTask.allowFatal
+
+
 
 -- DISPLAY
 
@@ -163,6 +182,25 @@ div html =
     BackendTask.Custom.run "scriptKitDiv"
         (html |> Html.String.toString 0 |> Encode.string)
         (Decode.null ())
+        |> BackendTask.allowFatal
+
+
+{-| Convert markdown to HTML string for use with div.
+
+    Kit.md "# Hello\n\nThis is **bold**"
+        |> BackendTask.andThen
+            (\htmlString ->
+                Kit.div (Html.div [] [ Html.text htmlString ])
+            )
+
+Returns an HTML string that can be embedded in div output.
+
+-}
+md : String -> BackendTask FatalError String
+md markdown =
+    BackendTask.Custom.run "scriptKitMd"
+        (Encode.string markdown)
+        Decode.string
         |> BackendTask.allowFatal
 
 
@@ -244,6 +282,23 @@ copy text =
     BackendTask.Custom.run "scriptKitCopy"
         (Encode.string text)
         (Decode.null ())
+        |> BackendTask.allowFatal
+
+
+{-| Get text from the clipboard.
+
+    Kit.paste
+        |> BackendTask.andThen
+            (\clipboardText ->
+                -- do something with clipboardText
+            )
+
+-}
+paste : BackendTask FatalError String
+paste =
+    BackendTask.Custom.run "scriptKitPaste"
+        Encode.null
+        Decode.string
         |> BackendTask.allowFatal
 
 
