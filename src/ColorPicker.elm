@@ -1,13 +1,12 @@
-module ColorPicker exposing (run, task)
+module ColorPicker exposing (script)
 
 import BackendTask exposing (BackendTask)
 import FatalError exposing (FatalError)
-import Html.String as Html exposing (Html)
+import Html.String as Html
 import Html.String.Attributes as Attr
 import Kit
 import Kit.Field as Field
 import Kit.Script as Script
-import Pages.Script exposing (Script)
 
 
 type alias Person =
@@ -17,20 +16,15 @@ type alias Person =
     }
 
 
-{-| Build script - run with `elm-pages run src/ColorPicker.elm`
--}
-run : Script
-run =
+script : Script.Script
+script =
     Script.define
         { name = "Color Picker"
-        , moduleName = "ColorPicker"
+        , task = task
         }
         |> Script.withDescription "Pick a color using elm-pages"
-        |> Script.build
 
 
-{-| The actual script logic
--}
 task : BackendTask FatalError ()
 task =
     Field.fields Person

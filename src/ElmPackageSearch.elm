@@ -1,4 +1,4 @@
-module ElmPackageSearch exposing (run, task)
+module ElmPackageSearch exposing (script)
 
 import BackendTask exposing (BackendTask)
 import BackendTask.Http
@@ -8,7 +8,6 @@ import Html.String.Attributes as Attr
 import Json.Decode as Decode exposing (Decoder)
 import Kit
 import Kit.Script as Script
-import Pages.Script exposing (Script)
 
 
 type alias Package =
@@ -18,20 +17,15 @@ type alias Package =
     }
 
 
-{-| Build script - run with `elm-pages run src/ElmPackageSearch.elm`
--}
-run : Script
-run =
+script : Script.Script
+script =
     Script.define
         { name = "Elm Package Search"
-        , moduleName = "ElmPackageSearch"
+        , task = task
         }
         |> Script.withDescription "Search and explore Elm packages"
-        |> Script.build
 
 
-{-| The actual script logic
--}
 task : BackendTask FatalError ()
 task =
     fetchAllPackages
