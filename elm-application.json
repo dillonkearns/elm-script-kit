@@ -1,0 +1,9 @@
+{
+    "name": "dillonkearns/elm-script-kit",
+    "summary": "Elm bindings for ScriptKit - build native macOS scripts with Elm",
+    "version": "1.0.0",
+    "exposed-modules": [
+        "Kit",
+        "Kit.Field"
+    ]
+}

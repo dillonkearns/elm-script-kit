@@ -81,8 +81,6 @@ type alias ArgOptions =
 
 
 
-
-
 -- USER INPUT
 
 
@@ -322,6 +320,8 @@ encodeChoice choice =
         ]
 
 
+{-| Define a top-level script (like elm-pages `Script.withoutCliOptions`).
+-}
 script : BackendTask FatalError () -> Script.Script
 script main =
     Script.withoutCliOptions
