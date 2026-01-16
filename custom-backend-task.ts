@@ -15,6 +15,15 @@ export interface ArgOptions {
 export interface FieldSpec {
   label: string;
   type: string;
+  element: string;
+  placeholder?: string;
+  required: boolean;
+  value?: string;
+  min?: number;
+  max?: number;
+  step?: string;
+  rows?: number;
+  options?: string[];
 }
 
 export interface EditorOptions {
@@ -45,11 +54,30 @@ export async function scriptKitEditor(options: EditorOptions): Promise<string> {
 }
 
 export async function scriptKitFields(specs: FieldSpec[]): Promise<string[]> {
-  const fieldDefs = specs.map(spec => ({
-    name: spec.label,
-    label: spec.label,
-    type: spec.type,
-  }));
+  const fieldDefs = specs.map(spec => {
+    const field: any = {
+      label: spec.label,
+    };
+
+    if (spec.type && spec.type !== "text") field.type = spec.type;
+    if (spec.placeholder) field.placeholder = spec.placeholder;
+    if (spec.value) field.value = spec.value;
+    if (spec.required) field.required = spec.required;
+
+    // Handle textarea
+    if (spec.element === "textarea") {
+      field.type = "textarea";
+      if (spec.rows) field.rows = spec.rows;
+    }
+
+    // Number constraints
+    if (spec.min !== undefined) field.min = spec.min;
+    if (spec.max !== undefined) field.max = spec.max;
+    if (spec.step) field.step = spec.step;
+
+    return field;
+  });
+
   const result = await fields(fieldDefs);
   return result;
 }
