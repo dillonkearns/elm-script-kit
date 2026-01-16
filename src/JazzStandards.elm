@@ -3,13 +3,12 @@ module JazzStandards exposing (script)
 import BackendTask exposing (BackendTask)
 import BackendTask.Custom
 import BackendTask.Http
+import Serialize
 import FatalError exposing (FatalError)
-import Html.String as Html
-import Html.String.Attributes as Attr
 import Json.Decode as Decode exposing (Decoder)
 import Json.Encode as Encode
 import Kit
-import Kit.Db as Db
+import Kit.Db
 import Kit.Script as Script
 
 
@@ -19,11 +18,6 @@ type alias Track =
     , album : String
     , albumArt : String
     , spotifyUrl : String
-    }
-
-
-type alias CachedData =
-    { tracks : List Track
     }
 
 
@@ -51,29 +45,9 @@ task =
 
 getTracks : BackendTask FatalError (List Track)
 getTracks =
-    Db.get "jazz-standards"
-        cachedDataDecoder
-        { tracks = [] }
-        encodeCachedData
-        |> BackendTask.andThen
-            (\cached ->
-                if List.isEmpty cached.tracks then
-                    fetchAndCacheTracks
-
-                else
-                    BackendTask.succeed cached.tracks
-            )
-
-
-fetchAndCacheTracks : BackendTask FatalError (List Track)
-fetchAndCacheTracks =
-    getAccessToken
-        |> BackendTask.andThen fetchAllTracks
-        |> BackendTask.andThen
-            (\tracks ->
-                Db.write "jazz-standards" (encodeCachedData { tracks = tracks })
-                    |> BackendTask.map (\() -> tracks)
-            )
+    Kit.Db.getOrFetch "jazz-standards"
+        (Serialize.list trackCodec)
+        (getAccessToken |> BackendTask.andThen fetchAllTracks)
 
 
 getAccessToken : BackendTask FatalError String
@@ -170,41 +144,15 @@ trackDecoder =
 
 
 
--- Cached data codecs
-
-
-cachedDataDecoder : Decoder CachedData
-cachedDataDecoder =
-    Decode.map CachedData
-        (Decode.field "tracks" (Decode.list trackDecoderFromCache))
-
-
-trackDecoderFromCache : Decoder Track
-trackDecoderFromCache =
-    Decode.map5 Track
-        (Decode.field "name" Decode.string)
-        (Decode.field "artist" Decode.string)
-        (Decode.field "album" Decode.string)
-        (Decode.field "albumArt" Decode.string)
-        (Decode.field "spotifyUrl" Decode.string)
-
-
-encodeCachedData : CachedData -> Encode.Value
-encodeCachedData cached =
-    Encode.object
-        [ ( "tracks", Encode.list encodeTrack cached.tracks )
-        ]
-
-
-encodeTrack : Track -> Encode.Value
-encodeTrack track =
-    Encode.object
-        [ ( "name", Encode.string track.name )
-        , ( "artist", Encode.string track.artist )
-        , ( "album", Encode.string track.album )
-        , ( "albumArt", Encode.string track.albumArt )
-        , ( "spotifyUrl", Encode.string track.spotifyUrl )
-        ]
+trackCodec : Serialize.Codec e Track
+trackCodec =
+    Serialize.record Track
+        |> Serialize.field .name Serialize.string
+        |> Serialize.field .artist Serialize.string
+        |> Serialize.field .album Serialize.string
+        |> Serialize.field .albumArt Serialize.string
+        |> Serialize.field .spotifyUrl Serialize.string
+        |> Serialize.finishRecord
 
 
 selectTrack : List Track -> BackendTask FatalError Track

@@ -135,6 +135,17 @@ export async function scriptKitOpen(url: string): Promise<null> {
   return null;
 }
 
+// --- Text Selection ---
+
+export async function scriptKitGetSelectedText(): Promise<string> {
+  return await getSelectedText();
+}
+
+export async function scriptKitSetSelectedText(text: string): Promise<null> {
+  await setSelectedText(text);
+  return null;
+}
+
 // --- Environment ---
 
 export async function scriptKitEnv(varName: string): Promise<string> {
@@ -145,7 +156,6 @@ export async function scriptKitEnv(varName: string): Promise<string> {
 
 interface DbGetOptions {
   name: string;
-  defaultData: any;
 }
 
 interface DbWriteOptions {
@@ -153,28 +163,46 @@ interface DbWriteOptions {
   data: any;
 }
 
-export async function scriptKitDbGet(options: DbGetOptions): Promise<any> {
+interface DbClearOptions {
+  name: string;
+}
+
+export async function scriptKitDbGet(options: DbGetOptions): Promise<any | null> {
   console.log(`[db] Getting "${options.name}"...`);
-  const database = await db(options.name, options.defaultData);
-  // db uses a proxy - access properties directly, not via .data
-  const result = { ...options.defaultData };
-  for (const key of Object.keys(options.defaultData)) {
-    result[key] = database[key];
+  // Initialize with schema that includes 'value' key - ScriptKit's db proxy requires this
+  const database = await db(options.name, { value: null });
+  const data = database.value;
+
+  if (data === undefined || data === null) {
+    console.log(`[db] Cache MISS`);
+    return null;
   }
-  const trackCount = result.tracks?.length || 0;
-  console.log(`[db] Cache ${trackCount > 0 ? 'HIT' : 'MISS'} - ${trackCount} tracks`);
-  return result;
+
+  const itemCount = Array.isArray(data) ? data.length : 1;
+  console.log(`[db] Cache HIT - ${itemCount} item(s)`);
+  return data;
 }
 
 export async function scriptKitDbWrite(options: DbWriteOptions): Promise<null> {
-  console.log(`[db] Writing "${options.name}" - ${options.data?.tracks?.length || 0} tracks...`);
-  const database = await db(options.name);
-  // db uses a proxy - set properties directly
-  for (const [key, value] of Object.entries(options.data)) {
-    database[key] = value;
-  }
+  const itemCount = Array.isArray(options.data) ? options.data.length : 1;
+  console.log(`[db] Writing "${options.name}" - ${itemCount} item(s)...`);
+
+  // Initialize with schema that includes 'value' key
+  const database = await db(options.name, { value: null });
+  database.value = options.data;
   await database.write();
+
   console.log(`[db] Write complete`);
+  return null;
+}
+
+export async function scriptKitDbClear(options: DbClearOptions): Promise<null> {
+  console.log(`[db] Clearing "${options.name}"...`);
+
+  const database = await db(options.name);
+  await database.clear();
+
+  console.log(`[db] Clear complete`);
   return null;
 }
 

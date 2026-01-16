@@ -6,6 +6,7 @@
         "Kit",
         "Kit.Build",
         "Kit.Field",
+        "Kit.Db",
         "Kit.Script"
     ]
 }
