@@ -3,3 +3,4 @@ color-picker.bundle.js
 elm-stuff
 *.bundle.js
 KitScript.elm
+node_modules
