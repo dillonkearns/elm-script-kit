@@ -95,9 +95,9 @@ type alias ArgOptions =
     Kit.arg
         { placeholder = "Choose a color"
         , choices =
-            [ { name = "[R]ed", value = "red" }
-            , { name = "[G]reen", value = "green" }
-            , { name = "[B]lue", value = "blue" }
+            [ { name = "Red", value = "red", description = "A warm color" }
+            , { name = "Green", value = "green", description = "" }
+            , { name = "Blue", value = "blue", description = "" }
             ]
         }
 

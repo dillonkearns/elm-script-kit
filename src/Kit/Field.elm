@@ -28,7 +28,7 @@ module Kit.Field exposing
         , age : Int
         }
 
-    Field.fields (\name bio age -> { name = name, bio = bio, age = age })
+    Field.fields Person
         |> Field.with (Field.text "Name" |> Field.placeholder "Enter name")
         |> Field.with (Field.textarea "Bio" { rows = 4 })
         |> Field.with (Field.int "Age" |> Field.min 0 |> Field.max 120)
