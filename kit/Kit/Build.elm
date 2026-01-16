@@ -1,15 +1,17 @@
-module Build exposing (run)
+module Kit.Build exposing (run)
 
 {-| Build script for Kit scripts.
 
-Usage: `elm-pages run src/Build.elm -- ModuleName`
+Usage: `elm-pages run kit/Kit/Build.elm -- ModuleName`
 
-Example: `elm-pages run src/Build.elm -- ColorPicker`
+Example: `elm-pages run kit/Kit/Build.elm -- ElmPackageSearch`
 
 This performs a two-pass build:
 
 1.  Generates a metadata extraction script, runs it to get script metadata
 2.  Generates JS wrapper and Elm harness, then bundles
+
+@docs run
 
 -}
 
@@ -28,6 +30,7 @@ type alias CliOptions =
     }
 
 
+{-| -}
 run : Script
 run =
     Script.withCliOptions program
@@ -101,7 +104,7 @@ script =
     Script.define
         { name = \""""
                 ++ humanName
-                ++ """\"
+                ++ """"
         , task = task
         }
         |> Script.withDescription "TODO: Add description"
@@ -211,7 +214,7 @@ run =
 """
     in
     Script.writeFile
-        { path = "src/KitMeta.elm"
+        { path = "gen/KitMeta.elm"
         , body = content
         }
         |> BackendTask.allowFatal
@@ -219,7 +222,7 @@ run =
 
 runMetaScript : BackendTask FatalError ()
 runMetaScript =
-    Script.command "npx" [ "elm-pages", "run", "src/KitMeta.elm" ]
+    Script.command "npx" [ "elm-pages", "run", "gen/KitMeta.elm" ]
         |> BackendTask.quiet
         |> BackendTask.map (\_ -> ())
 
@@ -299,7 +302,7 @@ run =
 """
     in
     Script.writeFile
-        { path = "src/KitHarness.elm"
+        { path = "gen/KitHarness.elm"
         , body = content
         }
         |> BackendTask.allowFatal
@@ -310,7 +313,7 @@ bundleHarness slug =
     Script.command "npx"
         [ "elm-pages"
         , "bundle-script"
-        , "src/KitHarness.elm"
+        , "gen/KitHarness.elm"
         , "--output"
         , slug ++ ".bundle.js"
         , "--external"
@@ -334,6 +337,6 @@ bundleHarness slug =
 
 cleanup : BackendTask FatalError ()
 cleanup =
-    Script.command "rm" [ "-f", "src/KitMeta.elm", "src/KitHarness.elm", "kit-meta.json" ]
+    Script.command "rm" [ "-f", "gen/KitMeta.elm", "gen/KitHarness.elm", "kit-meta.json" ]
         |> BackendTask.quiet
         |> BackendTask.map (\_ -> ())

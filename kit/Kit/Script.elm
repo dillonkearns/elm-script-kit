@@ -22,7 +22,7 @@ module Kit.Script exposing
             |> Script.withDescription "Pick a color"
             |> Script.withShortcut "cmd+shift+c"
 
-Then build with: `elm-pages run src/Build.elm -- ColorPicker`
+Then build with: `elm-pages run kit/Kit/Build.elm -- ColorPicker`
 
 
 # Defining Scripts

@@ -1,6 +1,5 @@
-color-picker.bundle.js
 .elm-pages
 elm-stuff
-*.bundle.js
-KitScript.elm
 node_modules
+*.bundle.js
+gen/

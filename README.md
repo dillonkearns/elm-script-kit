@@ -1,10 +1,12 @@
 # elm-script-kit
 
-Elm bindings for [ScriptKit](https://www.scriptkit.com/) using [elm-pages](https://elm-pages.com/) scripts.
+Elm bindings for [ScriptKit](https://www.scriptkit.com/) using [elm-pages scripts](https://elm-pages.com/docs/elm-pages-scripts).
 
 ## Goals
 
 This is a **starter repo**, not a published package. Fork it and build your own ScriptKit scripts in Elm with type-safe UI primitives, then customize as needed.
+
+This project builds heavily on [elm-pages scripts](https://elm-pages.com/docs/elm-pages-scripts) - understanding that foundation will help you get the most out of this starter.
 
 ## Example: Elm Package Search
 
@@ -31,14 +33,15 @@ The folder structure should be:
 ```
 ~/.kenv/scripts/
 ├── elm-pages-script/       # This Elm project
-│   ├── src/
-│   │   ├── Build.elm       # Build script
+│   ├── kit/                # Library (Kit.* modules)
 │   │   ├── Kit.elm         # ScriptKit API
-│   │   ├── Kit/
-│   │   │   ├── Field.elm   # Form fields API
-│   │   │   └── Script.elm  # Script definition API
-│   │   └── YourScript.elm  # Your scripts go here
-│   └── ...
+│   │   └── Kit/
+│   │       ├── Build.elm   # Build script
+│   │       ├── Field.elm   # Form fields API
+│   │       └── Script.elm  # Script definition API
+│   ├── src/            # Your scripts go here
+│   │   └── YourScript.elm
+│   └── gen/                # Generated temp files (auto-cleaned)
 ├── your-script.js          # Generated JS wrappers (auto-created)
 └── ...
 ```
@@ -51,10 +54,10 @@ One command does everything:
 cd ~/.kenv/scripts/elm-pages-script
 
 # Create a new script (generates Elm file + JS wrapper)
-elm-pages run src/Build.elm -- MyScript
+elm-pages run kit/Kit/Build.elm -- MyScript
 
 # Edit src/MyScript.elm to add your logic, then build:
-elm-pages run src/Build.elm -- MyScript
+elm-pages run kit/Kit/Build.elm -- MyScript
 ```
 
 The first run creates:

@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "postinstall": "elm-tooling install",
-    "build": "elm-pages run src/Build.elm -- ElmPackageSearch",
+    "build": "elm-pages run kit/Kit/Build.elm -- ElmPackageSearch",
     "docs": "elm-doc-preview"
   },
   "devDependencies": {
