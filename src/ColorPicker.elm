@@ -9,7 +9,7 @@ import Pages.Script as Script exposing (Script)
 
 run : Script
 run =
-    Script.withoutCliOptions
+    Kit.script
         (Kit.arg
             { placeholder = "Choose a color"
             , choices =
@@ -30,5 +30,4 @@ run =
                             [ Html.text ("You chose " ++ color) ]
                         )
                 )
-            |> BackendTask.quiet
         )

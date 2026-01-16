@@ -1,5 +1,47 @@
 # elm-pages + ScriptKit Integration Notes
 
+## Current API (Kit.elm)
+
+### User Input
+- `arg` - select from choices
+- `input` - free text input
+- `editor` - Monaco editor with syntax highlighting
+- `fields` builder - multi-field forms (`withField`, `withNumberField`, `runFields`)
+
+### Display
+- `div` - display HTML (with `Html.String` for typed HTML)
+
+### File Picking
+- `selectFile` - native Finder file picker
+- `selectFolder` - native Finder folder picker
+
+### Utilities
+- `notify` - system notifications
+- `say` - text-to-speech
+- `copy` - copy to clipboard
+
+## Future Possibilities
+
+### arg enhancements
+- `withShortcut` - keyboard shortcuts for choices (e.g., `[O]pen` with `o` key)
+- Dynamic/async choices
+- Preview pane for choices
+
+### div enhancements
+- `divWithSubmit` - return values via `[Accept](submit:yes)` links
+- Widget API for persistent windows
+
+### Additional inputs
+- `template` - tab-through placeholder substitution (`$1`, `${2:default}`)
+- `hotkey` - capture key combinations
+- `drop` - drag and drop files/text
+- `path` - filesystem browser with tab navigation
+
+### AI functions
+- `ai` - text generation
+- `ai.object` - structured output with schema validation
+- `assistant` - stateful conversation
+
 ## Bundle Size
 
 The default `elm-pages bundle-script` output is ~1.1MB due to bundled dependencies:
