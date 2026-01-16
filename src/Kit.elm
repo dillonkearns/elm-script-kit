@@ -1,15 +1,9 @@
 module Kit exposing
     ( arg, input, editor, Choice, ArgOptions
-    , Fields, fields, withField, withNumberField, runFields
     , div, Html
     , selectFile, selectFolder
     , notify, say, copy
     , script
-      -- Fields Builder
-      -- File Picking
-      -- User Input
-      -- Display
-      -- Utilities
     )
 
 {-| Elm bindings for ScriptKit.
@@ -18,11 +12,6 @@ module Kit exposing
 # User Input
 
 @docs arg, input, editor, Choice, ArgOptions
-
-
-# Fields Builder
-
-@docs Fields, fields, withField, withNumberField, runFields
 
 
 # Display
@@ -38,6 +27,11 @@ module Kit exposing
 # Utilities
 
 @docs notify, say, copy
+
+
+# Script Helper
+
+@docs script
 
 -}
 
@@ -86,19 +80,6 @@ type alias ArgOptions =
     }
 
 
-{-| Builder for a multi-field form. Uses an applicative pattern for type safety.
--}
-type Fields a
-    = Fields
-        { specs : List FieldSpec
-        , decoder : Decode.Decoder a
-        }
-
-
-type alias FieldSpec =
-    { label : String
-    , fieldType : String
-    }
 
 
 
@@ -163,84 +144,6 @@ editor options =
         )
         Decode.string
         |> BackendTask.allowFatal
-
-
-
--- FIELDS BUILDER
-
-
-{-| Start building a multi-field form with a constructor function.
-
-    Kit.fields (\name email age -> { name = name, email = email, age = age })
-        |> Kit.withField "Name"
-        |> Kit.withField "Email"
-        |> Kit.withNumberField "Age"
-        |> Kit.runFields
-
--}
-fields : a -> Fields a
-fields constructor =
-    Fields
-        { specs = []
-        , decoder = Decode.succeed constructor
-        }
-
-
-{-| Add a text field to the form. Applies a String to the constructor.
--}
-withField : String -> Fields (String -> a) -> Fields a
-withField label (Fields f) =
-    Fields
-        { specs = f.specs ++ [ { label = label, fieldType = "text" } ]
-        , decoder =
-            Decode.map2 (<|)
-                f.decoder
-                (Decode.index (List.length f.specs) Decode.string)
-        }
-
-
-{-| Add a number field to the form. Applies a Float to the constructor.
--}
-withNumberField : String -> Fields (Float -> a) -> Fields a
-withNumberField label (Fields f) =
-    let
-        floatDecoder =
-            Decode.string
-                |> Decode.andThen
-                    (\s ->
-                        case String.toFloat s of
-                            Just n ->
-                                Decode.succeed n
-
-                            Nothing ->
-                                Decode.fail ("Expected a number but got: " ++ s)
-                    )
-    in
-    Fields
-        { specs = f.specs ++ [ { label = label, fieldType = "number" } ]
-        , decoder =
-            Decode.map2 (<|)
-                f.decoder
-                (Decode.index (List.length f.specs) floatDecoder)
-        }
-
-
-{-| Run the fields form and get the results.
--}
-runFields : Fields a -> BackendTask FatalError a
-runFields (Fields f) =
-    BackendTask.Custom.run "scriptKitFields"
-        (Encode.list encodeFieldSpec f.specs)
-        f.decoder
-        |> BackendTask.allowFatal
-
-
-encodeFieldSpec : FieldSpec -> Encode.Value
-encodeFieldSpec spec =
-    Encode.object
-        [ ( "label", Encode.string spec.label )
-        , ( "type", Encode.string spec.fieldType )
-        ]
 
 
 
