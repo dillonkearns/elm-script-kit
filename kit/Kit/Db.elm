@@ -33,6 +33,8 @@ doesn't exist or has no data.
     Kit.Db.get "todos" (Serialize.list todoCodec)
         |> BackendTask.map (Maybe.withDefault [])
 
+Fails with a `FatalError` if data exists but cannot be decoded (e.g., schema changed).
+
 -}
 get : String -> Codec e a -> BackendTask FatalError (Maybe a)
 get name codec =
@@ -41,20 +43,27 @@ get name codec =
             [ ( "name", Encode.string name )
             ]
         )
-        (Decode.nullable Decode.value
-            |> Decode.map
-                (Maybe.andThen
-                    (\json ->
+        (Decode.nullable Decode.value)
+        |> BackendTask.allowFatal
+        |> BackendTask.andThen
+            (\maybeJson ->
+                case maybeJson of
+                    Nothing ->
+                        -- Cache miss - no data stored
+                        BackendTask.succeed Nothing
+
+                    Just json ->
+                        -- Data exists, try to decode
                         case Serialize.decodeFromJson codec json of
                             Ok value ->
-                                Just value
+                                BackendTask.succeed (Just value)
 
-                            Err _ ->
-                                Nothing
-                    )
-                )
-        )
-        |> BackendTask.allowFatal
+                            Err err ->
+                                BackendTask.fail
+                                    (FatalError.fromString
+                                        ("Failed to decode db '" ++ name ++ "': " ++ serializeErrorToString err)
+                                    )
+            )
 
 
 {-| Get data from a named database, or fetch it if not present.
@@ -121,3 +130,20 @@ clear name =
         )
         (Decode.null ())
         |> BackendTask.allowFatal
+
+
+
+-- HELPERS
+
+
+serializeErrorToString : Serialize.Error e -> String
+serializeErrorToString err =
+    case err of
+        Serialize.CustomError _ ->
+            "Custom codec error"
+
+        Serialize.DataCorrupted ->
+            "Data corrupted"
+
+        Serialize.SerializerOutOfDate ->
+            "Serializer out of date - the data schema may have changed. Try clearing the cache with Kit.Db.clear."
