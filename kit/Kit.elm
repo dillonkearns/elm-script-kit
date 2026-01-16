@@ -3,6 +3,7 @@ module Kit exposing
     , div, md, Html
     , selectFile, selectFolder
     , notify, say, copy, paste, open
+    , getSelectedText, setSelectedText
     , env
     , script
     )
@@ -28,6 +29,11 @@ module Kit exposing
 # Utilities
 
 @docs notify, say, copy, paste, open
+
+
+# Text Selection
+
+@docs getSelectedText, setSelectedText
 
 
 # Environment
@@ -325,6 +331,61 @@ open : String -> BackendTask FatalError ()
 open url =
     BackendTask.Custom.run "scriptKitOpen"
         (Encode.string url)
+        (Decode.null ())
+        |> BackendTask.allowFatal
+
+
+
+-- TEXT SELECTION
+
+
+{-| Get the currently selected text from any application.
+
+This works by simulating Cmd+C (or Ctrl+C on Windows/Linux) and reading
+the clipboard. The previous clipboard content is NOT preserved.
+
+    Kit.getSelectedText
+        |> BackendTask.andThen
+            (\selectedText ->
+                if String.isEmpty selectedText then
+                    Kit.notify "No text selected!"
+
+                else
+                    -- Do something with the selected text
+                    Kit.copy (String.toUpper selectedText)
+            )
+
+Returns an empty string if no text is selected.
+
+-}
+getSelectedText : BackendTask FatalError String
+getSelectedText =
+    BackendTask.Custom.run "scriptKitGetSelectedText"
+        Encode.null
+        Decode.string
+        |> BackendTask.allowFatal
+
+
+{-| Replace the currently selected text in any application.
+
+This works by writing to the clipboard and simulating Cmd+V (or Ctrl+V
+on Windows/Linux). The original clipboard content is restored after pasting.
+
+    -- Transform selected text to uppercase
+    Kit.getSelectedText
+        |> BackendTask.andThen
+            (\text ->
+                Kit.setSelectedText (String.toUpper text)
+            )
+
+    -- Insert text at cursor position (works even with no selection)
+    Kit.setSelectedText "Hello, World!"
+
+-}
+setSelectedText : String -> BackendTask FatalError ()
+setSelectedText text =
+    BackendTask.Custom.run "scriptKitSetSelectedText"
+        (Encode.string text)
         (Decode.null ())
         |> BackendTask.allowFatal
 
