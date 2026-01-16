@@ -32,19 +32,126 @@ run : Script
 run =
     Script.withCliOptions program
         (\{ moduleName } ->
-            Script.log ("Building " ++ moduleName ++ "...")
-                |> BackendTask.andThen (\_ -> generateMetaScript moduleName)
-                |> BackendTask.andThen (\_ -> runMetaScript)
-                |> BackendTask.andThen (\_ -> readMetadata)
+            checkIfModuleExists moduleName
                 |> BackendTask.andThen
-                    (\meta ->
-                        generateJsWrapper meta
-                            |> BackendTask.andThen (\_ -> generateHarness moduleName)
-                            |> BackendTask.andThen (\_ -> bundleHarness meta.slug)
-                            |> BackendTask.andThen (\_ -> cleanup)
-                            |> BackendTask.andThen (\_ -> Script.log ("Built " ++ meta.slug ++ ".bundle.js"))
+                    (\exists ->
+                        if exists then
+                            buildScript moduleName
+
+                        else
+                            generateNewScript moduleName
+                                |> BackendTask.andThen (\_ -> Script.log ("Created src/" ++ moduleName ++ ".elm - edit it and run this command again to build!"))
                     )
         )
+
+
+checkIfModuleExists : String -> BackendTask FatalError Bool
+checkIfModuleExists moduleName =
+    File.rawFile ("src/" ++ moduleName ++ ".elm")
+        |> BackendTask.toResult
+        |> BackendTask.map
+            (\result ->
+                case result of
+                    Ok _ ->
+                        True
+
+                    Err _ ->
+                        False
+            )
+
+
+buildScript : String -> BackendTask FatalError ()
+buildScript moduleName =
+    Script.log ("Building " ++ moduleName ++ "...")
+        |> BackendTask.andThen (\_ -> generateMetaScript moduleName)
+        |> BackendTask.andThen (\_ -> runMetaScript)
+        |> BackendTask.andThen (\_ -> readMetadata)
+        |> BackendTask.andThen
+            (\meta ->
+                generateJsWrapper meta
+                    |> BackendTask.andThen (\_ -> generateHarness moduleName)
+                    |> BackendTask.andThen (\_ -> bundleHarness meta.slug)
+                    |> BackendTask.andThen (\_ -> cleanup)
+                    |> BackendTask.andThen (\_ -> Script.log ("Built " ++ meta.slug ++ ".bundle.js"))
+            )
+
+
+generateNewScript : String -> BackendTask FatalError ()
+generateNewScript moduleName =
+    let
+        humanName =
+            toHumanName moduleName
+
+        slug =
+            toSlug humanName
+
+        elmContent =
+            "module "
+                ++ moduleName
+                ++ """ exposing (script)
+
+import BackendTask exposing (BackendTask)
+import FatalError exposing (FatalError)
+import Kit
+import Kit.Script as Script
+
+
+script : Script.Script
+script =
+    Script.define
+        { name = \""""
+                ++ humanName
+                ++ """\"
+        , task = task
+        }
+        |> Script.withDescription "TODO: Add description"
+
+
+task : BackendTask FatalError ()
+task =
+    Kit.notify "Hello from """
+                ++ moduleName
+                ++ """!"
+"""
+
+        jsContent =
+            [ "// Name: " ++ humanName
+            , "// Description: TODO: Add description"
+            , ""
+            , "import \"@johnlindquist/kit\""
+            , ""
+            , "await import(\"./elm-pages-script/" ++ slug ++ ".bundle.js\")"
+            ]
+                |> String.join "\n"
+    in
+    Script.writeFile
+        { path = "src/" ++ moduleName ++ ".elm"
+        , body = elmContent
+        }
+        |> BackendTask.allowFatal
+        |> BackendTask.andThen
+            (\_ ->
+                Script.writeFile
+                    { path = "../" ++ slug ++ ".js"
+                    , body = jsContent
+                    }
+                    |> BackendTask.allowFatal
+            )
+
+
+toHumanName : String -> String
+toHumanName moduleName =
+    moduleName
+        |> String.toList
+        |> List.foldl
+            (\char acc ->
+                if Char.isUpper char && acc /= "" then
+                    acc ++ " " ++ String.fromChar char
+
+                else
+                    acc ++ String.fromChar char
+            )
+            ""
 
 
 program : Program.Config CliOptions
