@@ -29,11 +29,11 @@ run =
                     Kit.arg
                         { placeholder = "Pick your favorite color"
                         , choices =
-                            [ { name = "Red", value = "red" }
-                            , { name = "Green", value = "green" }
-                            , { name = "Blue", value = "blue" }
-                            , { name = "Purple", value = "purple" }
-                            , { name = "Orange", value = "orange" }
+                            [ { name = "Red", value = "red", description = "" }
+                            , { name = "Green", value = "green", description = "" }
+                            , { name = "Blue", value = "blue", description = "" }
+                            , { name = "Purple", value = "purple", description = "" }
+                            , { name = "Orange", value = "orange", description = "" }
                             ]
                         }
                         |> BackendTask.andThen (\color -> showResult person color)

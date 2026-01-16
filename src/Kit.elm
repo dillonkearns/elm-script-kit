@@ -65,10 +65,16 @@ type alias Html =
 
 
 {-| A choice for the arg prompt.
+
+  - `name` - Primary display text
+  - `value` - Value returned when selected
+  - `description` - Optional secondary text shown below the name
+
 -}
 type alias Choice =
     { name : String
     , value : String
+    , description : String
     }
 
 
@@ -315,9 +321,16 @@ encodeArgOptions options =
 encodeChoice : Choice -> Encode.Value
 encodeChoice choice =
     Encode.object
-        [ ( "name", Encode.string choice.name )
-        , ( "value", Encode.string choice.value )
-        ]
+        ([ ( "name", Encode.string choice.name )
+         , ( "value", Encode.string choice.value )
+         ]
+            ++ (if String.isEmpty choice.description then
+                    []
+
+                else
+                    [ ( "description", Encode.string choice.description ) ]
+               )
+        )
 
 
 {-| Define a top-level script (like elm-pages `Script.withoutCliOptions`).

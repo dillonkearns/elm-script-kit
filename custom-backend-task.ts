@@ -5,6 +5,7 @@ import "@johnlindquist/kit"
 export interface Choice {
   name: string;
   value: string;
+  description?: string;
 }
 
 export interface ArgOptions {
