@@ -10,6 +10,9 @@ This is a **starter repo**, not a published package. Fork it and build your own 
 
 Check out [`src/ElmPackageSearch.elm`](src/ElmPackageSearch.elm) - **122 lines of Elm** for a fully functional package search tool you can pull up with a global keyboard shortcut. Search packages, see descriptions, and copy `elm install` commands to your clipboard.
 
+<img width="1546" height="962" alt="image" src="https://github.com/user-attachments/assets/a94ead66-50ce-4f2a-b9e3-461427fda5c8" />
+
+
 ## Prerequisites
 
 1. **Install ScriptKit** from [scriptkit.com](https://www.scriptkit.com/)
