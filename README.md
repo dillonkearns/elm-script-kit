@@ -6,16 +6,23 @@ Elm bindings for [ScriptKit](https://www.scriptkit.com/) using [elm-pages](https
 
 This is a **starter repo**, not a published package. Fork it and build your own ScriptKit scripts in Elm with type-safe UI primitives, then customize as needed.
 
-## Setup
+## Example: Elm Package Search
 
-Clone or copy this folder into your ScriptKit scripts directory:
+Check out [`src/ElmPackageSearch.elm`](src/ElmPackageSearch.elm) - **122 lines of Elm** for a fully functional package search tool you can pull up with a global keyboard shortcut. Search packages, see descriptions, and copy `elm install` commands to your clipboard.
 
-```bash
-cd ~/.kenv/scripts
-git clone <this-repo> elm-pages-script
-cd elm-pages-script
-npm install
-```
+## Prerequisites
+
+1. **Install ScriptKit** from [scriptkit.com](https://www.scriptkit.com/)
+2. **Clone this repo** into your ScriptKit scripts directory:
+   ```bash
+   cd ~/.kenv/scripts
+   git clone https://github.com/dillonkearns/elm-script-kit elm-pages-script
+   cd elm-pages-script
+   ```
+3. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
 The folder structure should be:
 ```
@@ -82,25 +89,10 @@ task =
         |> BackendTask.andThen (\name -> Kit.notify ("Hello, " ++ name ++ "!"))
 ```
 
-## Available APIs
+## Documentation
 
-**Kit** - `arg`, `input`, `editor`, `template`, `div`, `md`, `selectFile`, `selectFolder`, `notify`, `say`, `copy`, `paste`
-
-**Kit.Field** - Type-safe form builder with `text`, `int`, `number`, `email`, `textarea` fields
-
-**Kit.Script** - Script definition with `define`, `withDescription`, `withShortcut`
-
-## npm Scripts
-
-```bash
-# Build the example (Elm Package Search)
-npm run build
-
-# Start the documentation server
-npm run docs
-```
-
-Open http://localhost:8000 to browse the `Kit`, `Kit.Field`, and `Kit.Script` module docs.
+- **Online**: [View docs on elm-doc-preview](https://elm-doc-preview.netlify.app/?repo=dillonkearns/elm-script-kit)
+- **Local**: Run `npm run docs` and open http://localhost:8000
 
 ## Future: script-kit-next
 
