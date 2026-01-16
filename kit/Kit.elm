@@ -333,13 +333,18 @@ open url =
 -- ENVIRONMENT
 
 
-{-| Get an environment variable. Prompts the user to set it if not found.
+{-| Get an environment variable. If not found, ScriptKit will prompt the user
+to enter a value and save it to the `.env` file for future use.
 
     Kit.env "SPOTIFY_CLIENT_ID"
         |> BackendTask.andThen
             (\clientId ->
                 -- use clientId
             )
+
+This differs from [`BackendTask.Env.expect`](https://package.elm-lang.org/packages/dillonkearns/elm-pages/latest/BackendTask-Env#expect)
+which fails if the variable is not set. `Kit.env` leverages ScriptKit's
+interactive prompting to provide a better UX for missing configuration.
 
 -}
 env : String -> BackendTask FatalError String
