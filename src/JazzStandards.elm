@@ -76,6 +76,7 @@ fetchTracksPage accessToken offset accumulated =
                 ++ String.fromInt limit
                 ++ "&offset="
                 ++ String.fromInt offset
+                ++ "&market=US"
     in
     BackendTask.Http.getWithOptions
         { url = url
@@ -120,7 +121,28 @@ playlistResponseDecoder =
 
 trackItemDecoder : Decoder (Maybe Track)
 trackItemDecoder =
-    Decode.field "track" (Decode.nullable trackDecoder)
+    Decode.field "track"
+        (Decode.nullable
+            (Decode.map2 Tuple.pair
+                (Decode.field "is_playable" Decode.bool
+                    |> Decode.maybe
+                    |> Decode.map (Maybe.withDefault True)
+                )
+                trackDecoder
+            )
+        )
+        |> Decode.map
+            (\maybeTrackInfo ->
+                maybeTrackInfo
+                    |> Maybe.andThen
+                        (\( isPlayable, track ) ->
+                            if isPlayable then
+                                Just track
+
+                            else
+                                Nothing
+                        )
+            )
 
 
 trackDecoder : Decoder Track
@@ -184,11 +206,14 @@ selectTrack tracks =
 showTrack : Track -> BackendTask FatalError ()
 showTrack track =
     let
-        -- Extract track ID from URL like https://open.spotify.com/track/4LvfubODyhMUPz1amROlUN
+        -- Extract track ID from URL like https://open.spotify.com/track/4LvfubODyhMUPz1amROlUN?si=...
         trackId =
             track.spotifyUrl
                 |> String.split "/"
                 |> List.reverse
+                |> List.head
+                |> Maybe.withDefault ""
+                |> String.split "?"
                 |> List.head
                 |> Maybe.withDefault ""
 
